@@ -27,10 +27,26 @@ HEIGHT_VOLUME = {
 SEA_LEVEL_ZERO = 51.108
 
 st.header("Field Measurement")
-height_options = sorted(HEIGHT_VOLUME.keys())
-selected_height = st.selectbox("Select Water Height (m)", height_options, index=height_options.index(4.0))
+selected_height = st.number_input(
+    "Water Height (m)",
+    min_value=0.0,
+    max_value=8.5,
+    value=4.0,
+    step=0.01,
+)
 
-cumulative_volume = HEIGHT_VOLUME[selected_height]
+# Linear interpolation between the nearest 0.5m levels
+lower_step = round((selected_height // 0.5) * 0.5, 2)
+upper_step = round(min(lower_step + 0.5, 8.5), 2)
+lower_volume = HEIGHT_VOLUME[lower_step]
+upper_volume = HEIGHT_VOLUME[upper_step]
+
+if upper_step == lower_step:
+    cumulative_volume = lower_volume
+else:
+    fraction = (selected_height - lower_step) / 0.5
+    cumulative_volume = lower_volume + (upper_volume - lower_volume) * fraction
+
 above_sea_level = SEA_LEVEL_ZERO + selected_height
 
 st.metric(label="Cumulative Volume", value=f"{cumulative_volume:,.0f} m³")
