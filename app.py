@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("💧 Beit Shearim Reservoir Volume")
+st.title("💧 נפח מאגר בית שערים")
 
 # Fixed reference data (Height -> Cumulative Volume)
 HEIGHT_VOLUME = {
@@ -26,9 +26,9 @@ HEIGHT_VOLUME = {
 
 SEA_LEVEL_ZERO = 51.108
 
-st.header("Field Measurement")
+st.header("מדידת שדה")
 selected_height = st.number_input(
-    "Water Height (m)",
+    "גובה המים (מ')",
     min_value=0.0,
     max_value=8.5,
     value=4.0,
@@ -49,8 +49,7 @@ else:
 
 above_sea_level = SEA_LEVEL_ZERO + selected_height
 
-st.metric(label="Cumulative Volume", value=f"{cumulative_volume:,.0f} m³")
-st.metric(label="Above Sea Level", value=f"{above_sea_level:.3f} m")
+st.metric(label="נפח מצטבר", value=f"{cumulative_volume:,.0f} מ״ק")
+st.metric(label="גובה מעל פני הים", value=f"{above_sea_level:.3f} מ")
 
-st.caption("Cumulative volume values are based on the provided height table.")
-st.caption("Powered by Yair and Amit Kahanovitch. Descendants of Kahanovitch family, Beit Shearim pioneers")
+st.caption("מופעל על ידי יאיר ועמית כהנוביץ. צאצאי משפחת כהנוביץ, ממיסדי מושב בית שערים")
