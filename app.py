@@ -2,49 +2,38 @@ import streamlit as st
 
 st.title("💧 Reservoir Volume Calculator")
 
-# 1. Inputs
-st.sidebar.header("Configuration")
-base_area = st.sidebar.number_input("Base Area (sqm)", min_value=0.0, value=70000.0)
-top_area = st.sidebar.number_input("Top Area (sqm)", min_value=0.0, value=100000.0)
-max_depth = st.sidebar.number_input("Max Depth (m)", min_value=0.1, value=8.5, step=0.1)
+# Fixed reference data (Height -> Cumulative Volume)
+HEIGHT_VOLUME = {
+    0.0: 0,
+    0.5: 2013,
+    1.0: 9641,
+    1.5: 25331,
+    2.0: 51435,
+    2.5: 86203,
+    3.0: 124604,
+    3.5: 164730,
+    4.0: 206313,
+    4.5: 249121,
+    5.0: 293050,
+    5.5: 338059,
+    6.0: 384120,
+    6.5: 431262,
+    7.0: 479554,
+    7.5: 529058,
+    8.0: 579873,
+    8.5: 632162,
+}
 
-if top_area < base_area:
-    st.sidebar.error("Top Area must be greater than or equal to Base Area.")
-    st.stop()
+SEA_LEVEL_ZERO = 51.108
 
 st.header("Field Measurement")
-if "current_h" in st.session_state:
-    st.session_state.current_h = min(st.session_state.current_h, max_depth)
-current_h = st.number_input(
-    "Current Water Height (m)",
-    min_value=0.0,
-    max_value=max_depth,
-    value=min(4.0, max_depth),
-    step=0.1,
-    key="current_h",
-)
+height_options = sorted(HEIGHT_VOLUME.keys())
+selected_height = st.selectbox("Select Water Height (m)", height_options, index=height_options.index(4.0))
 
-# 2. Calculation
-# Calculate area at current height (Linear Interpolation)
-current_surface_area = base_area + ((current_h / max_depth) * (top_area - base_area))
+cumulative_volume = HEIGHT_VOLUME[selected_height]
+above_sea_level = SEA_LEVEL_ZERO + selected_height
 
-# Calculate Volume: Average of Base Area and Current Surface Area * Height
-volume = current_h * (base_area + current_surface_area) / 2
+st.metric(label="Cumulative Volume", value=f"{cumulative_volume:,.0f} m³")
+st.metric(label="Above Sea Level", value=f"{above_sea_level:.3f} m")
 
-# 3. Output
-st.metric(label="Total Water Volume", value=f"{volume:,.0f} m³")
-
-# Visual feedback
-fill_percent = current_h / max_depth
-st.progress(fill_percent)
-st.caption(f"The reservoir is {fill_percent*100:.1f}% full by height.")
-
-# 4. Curve preview
-st.subheader("Volume vs. Height")
-steps = 50
-heights = [max_depth * i / steps for i in range(steps + 1)]
-volumes = []
-for h in heights:
-    surface_area = base_area + ((h / max_depth) * (top_area - base_area))
-    volumes.append(h * (base_area + surface_area) / 2)
-st.line_chart({"Height (m)": heights, "Volume (m³)": volumes})
+st.caption("Cumulative volume values are based on the provided height table.")
