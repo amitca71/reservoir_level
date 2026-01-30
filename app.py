@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.title("💧 Reservoir Volume Calculator")
+st.title("💧 Beit Shearim Reservoir Volume")
 
 # Fixed reference data (Height -> Cumulative Volume)
 HEIGHT_VOLUME = {
@@ -53,3 +53,4 @@ st.metric(label="Cumulative Volume", value=f"{cumulative_volume:,.0f} m³")
 st.metric(label="Above Sea Level", value=f"{above_sea_level:.3f} m")
 
 st.caption("Cumulative volume values are based on the provided height table.")
+st.caption("Powered by Yair and Amit Kahanovitch. Descendants of Kahanovitch family, Beit Shearim pioneers")
