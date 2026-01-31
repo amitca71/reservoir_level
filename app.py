@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 
 st.markdown(
-    "<h3 style='margin-bottom:0.25rem; white-space:nowrap; text-align:right; direction:rtl;'>💧 מאגר בית שערים</h3>",
+    "<h4 style='margin-bottom:0.25rem; white-space:nowrap; text-align:right; direction:rtl;'>💧 מאגר בית שערים</h4>",
     unsafe_allow_html=True,
 )
 
@@ -67,7 +67,10 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("<h4 style='margin-top:0.5rem;'>גרף נפח לפי גובה</h4>", unsafe_allow_html=True)
+st.markdown(
+    "<h5 style='margin-top:0.5rem; text-align:right; direction:rtl;'>גרף נפח לפי גובה</h5>",
+    unsafe_allow_html=True,
+)
 points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
 
 blue_points = [p for p in points if p["Height"] <= selected_height]
@@ -93,4 +96,9 @@ gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
 
 st.altair_chart(blue_line + gray_line, use_container_width=True)
 
-st.caption("מופעל על ידי יאיר ועמית כהנוביץ. צאצאי משפחת כהנוביץ, ממיסדי מושב בית שערים")
+st.markdown(
+    "<div style='text-align:right; direction:rtl; font-size:0.75rem; margin-top:0.2rem;'>"
+    "מופעל על ידי יאיר ועמית כהנוביץ. צאצאי משפחת כהנוביץ, ממיסדי מושב בית שערים"
+    "</div>",
+    unsafe_allow_html=True,
+)
