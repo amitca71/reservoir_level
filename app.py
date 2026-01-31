@@ -88,13 +88,16 @@ gray_df = pd.DataFrame(gray_points)
 blue_line = alt.Chart(blue_df).mark_line(color="#1f77b4").encode(
     x=alt.X("Height", title="גובה (מ')", scale=alt.Scale(domain=[0, 8.5])),
     y=alt.Y("Volume", title="נפח (מ״ק)"),
-)
+).properties(height=220)
 gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
     x=alt.X("Height", scale=alt.Scale(domain=[0, 8.5])),
     y="Volume",
-)
+).properties(height=220)
 
-st.altair_chart(blue_line + gray_line, use_container_width=True)
+chart = (blue_line + gray_line).configure_view(strokeWidth=0).configure_axis(
+    labelPadding=2, titlePadding=4
+)
+st.altair_chart(chart, use_container_width=True)
 
 st.markdown(
     "<div style='text-align:right; direction:rtl; font-size:0.75rem; margin-top:0.05rem;'>"
