@@ -56,8 +56,8 @@ above_sea_level = SEA_LEVEL_ZERO + selected_height
 st.markdown(
     f"""
     <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; direction:rtl;">
-      <div style="font-size:0.85rem; white-space:nowrap; text-align:right;">
-        <strong>נפח מצטבר</strong><br>{cumulative_volume:,.0f} מ״ק
+      <div style="font-size:0.8rem; white-space:nowrap; text-align:right;">
+        <strong>נפח מצטבר</strong><br><span style="font-size:1.05rem;">{cumulative_volume:,.0f}</span> מ״ק
       </div>
       <div style="font-size:0.8rem; white-space:nowrap; text-align:right;">
         <strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳
