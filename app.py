@@ -68,7 +68,7 @@ st.markdown(
 )
 
 st.markdown(
-    "<h5 style='margin-top:0.5rem; text-align:right; direction:rtl;'>גרף נפח לפי גובה</h5>",
+    "<div style='margin-top:0.5rem; text-align:right; direction:rtl; font-size:0.8rem; font-weight:600;'>גרף נפח לפי גובה</div>",
     unsafe_allow_html=True,
 )
 points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
@@ -97,7 +97,7 @@ gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
 st.altair_chart(blue_line + gray_line, use_container_width=True)
 
 st.markdown(
-    "<div style='text-align:right; direction:rtl; font-size:0.75rem; margin-top:0.2rem;'>"
+    "<div style='text-align:right; direction:rtl; font-size:0.75rem; margin-top:0.05rem;'>"
     "מופעל על ידי יאיר ועמית כהנוביץ. צאצאי משפחת כהנוביץ, ממיסדי מושב בית שערים"
     "</div>",
     unsafe_allow_html=True,
