@@ -2,7 +2,10 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-st.markdown("<h2 style='margin-bottom:0.25rem;'>💧 מאגר בית שערים</h2>", unsafe_allow_html=True)
+st.markdown(
+    "<h3 style='margin-bottom:0.25rem; white-space:nowrap; text-align:right; direction:rtl;'>💧 מאגר בית שערים</h3>",
+    unsafe_allow_html=True,
+)
 
 # Fixed reference data (Height -> Cumulative Volume)
 HEIGHT_VOLUME = {
@@ -50,17 +53,19 @@ else:
 
 above_sea_level = SEA_LEVEL_ZERO + selected_height
 
-col_volume, col_sea = st.columns([2, 1])
-with col_volume:
-    st.markdown(
-        f"<div style='font-size:0.9rem;'><strong>נפח מצטבר</strong><br>{cumulative_volume:,.0f} מ״ק</div>",
-        unsafe_allow_html=True,
-    )
-with col_sea:
-    st.markdown(
-        f"<div style='font-size:0.85rem;'><strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳</div>",
-        unsafe_allow_html=True,
-    )
+st.markdown(
+    f"""
+    <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; direction:rtl;">
+      <div style="font-size:0.85rem; white-space:nowrap; text-align:right;">
+        <strong>נפח מצטבר</strong><br>{cumulative_volume:,.0f} מ״ק
+      </div>
+      <div style="font-size:0.8rem; white-space:nowrap; text-align:right;">
+        <strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳
+      </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.markdown("<h4 style='margin-top:0.5rem;'>גרף נפח לפי גובה</h4>", unsafe_allow_html=True)
 points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
