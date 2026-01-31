@@ -1,3 +1,5 @@
+import altair as alt
+import pandas as pd
 import streamlit as st
 
 st.title("💧 נפח מאגר בית שערים")
@@ -26,7 +28,6 @@ HEIGHT_VOLUME = {
 
 SEA_LEVEL_ZERO = 51.108
 
-st.header("מדידת שדה")
 selected_height = st.number_input(
     "גובה המים (מ')",
     min_value=0.0,
@@ -49,7 +50,39 @@ else:
 
 above_sea_level = SEA_LEVEL_ZERO + selected_height
 
-st.metric(label="נפח מצטבר", value=f"{cumulative_volume:,.0f} מ״ק")
-st.metric(label="גובה מעל פני הים", value=f"{above_sea_level:.3f} מ")
+col_volume, col_sea = st.columns([2, 1])
+with col_volume:
+    st.metric(label="נפח מצטבר", value=f"{cumulative_volume:,.0f} מ״ק")
+with col_sea:
+    st.markdown(
+        f"<div style='font-size:0.9rem;'><strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳</div>",
+        unsafe_allow_html=True,
+    )
+
+st.subheader("גרף נפח לפי גובה")
+points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
+
+blue_points = [p for p in points if p["Height"] <= selected_height]
+if not any(p["Height"] == selected_height for p in blue_points):
+    blue_points.append({"Height": selected_height, "Volume": cumulative_volume})
+blue_points = sorted(blue_points, key=lambda p: p["Height"])
+
+gray_points = [{"Height": selected_height, "Volume": cumulative_volume}]
+gray_points.extend([p for p in points if p["Height"] > selected_height])
+gray_points = sorted(gray_points, key=lambda p: p["Height"])
+
+blue_df = pd.DataFrame(blue_points)
+gray_df = pd.DataFrame(gray_points)
+
+blue_line = alt.Chart(blue_df).mark_line(color="#1f77b4").encode(
+    x=alt.X("Height", title="גובה (מ')", scale=alt.Scale(domain=[0, 8.5])),
+    y=alt.Y("Volume", title="נפח (מ״ק)"),
+)
+gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
+    x=alt.X("Height", scale=alt.Scale(domain=[0, 8.5])),
+    y="Volume",
+)
+
+st.altair_chart(blue_line + gray_line, use_container_width=True)
 
 st.caption("מופעל על ידי יאיר ועמית כהנוביץ. צאצאי משפחת כהנוביץ, ממיסדי מושב בית שערים")
