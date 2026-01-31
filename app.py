@@ -2,7 +2,7 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-st.title("💧 נפח מאגר בית שערים")
+st.markdown("<h2 style='margin-bottom:0.25rem;'>💧 מאגר בית שערים</h2>", unsafe_allow_html=True)
 
 # Fixed reference data (Height -> Cumulative Volume)
 HEIGHT_VOLUME = {
@@ -52,14 +52,17 @@ above_sea_level = SEA_LEVEL_ZERO + selected_height
 
 col_volume, col_sea = st.columns([2, 1])
 with col_volume:
-    st.metric(label="נפח מצטבר", value=f"{cumulative_volume:,.0f} מ״ק")
+    st.markdown(
+        f"<div style='font-size:0.9rem;'><strong>נפח מצטבר</strong><br>{cumulative_volume:,.0f} מ״ק</div>",
+        unsafe_allow_html=True,
+    )
 with col_sea:
     st.markdown(
-        f"<div style='font-size:0.9rem;'><strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳</div>",
+        f"<div style='font-size:0.85rem;'><strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳</div>",
         unsafe_allow_html=True,
     )
 
-st.subheader("גרף נפח לפי גובה")
+st.markdown("<h4 style='margin-top:0.5rem;'>גרף נפח לפי גובה</h4>", unsafe_allow_html=True)
 points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
 
 blue_points = [p for p in points if p["Height"] <= selected_height]
