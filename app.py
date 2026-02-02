@@ -10,7 +10,7 @@ st.markdown(
 # Fixed reference data (Height -> Cumulative Volume)
 HEIGHT_VOLUME = {
     0.0: 0,
-    0.5: 2013,
+    0.5: 0,
     1.0: 9641,
     1.5: 25331,
     2.0: 51435,
