@@ -35,7 +35,7 @@ selected_height = st.number_input(
     "גובה המים (מ')",
     min_value=0.0,
     max_value=8.5,
-    value=4.0,
+    value=6.1,
     step=0.01,
 )
 
