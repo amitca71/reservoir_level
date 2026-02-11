@@ -71,26 +71,46 @@ st.markdown(
     "<div style='margin-top:0.5rem; text-align:right; direction:rtl; font-size:0.8rem; font-weight:600;'>גרף נפח לפי גובה</div>",
     unsafe_allow_html=True,
 )
-points = [{"Height": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
 
+# --- 1. PREPARE DATA WITH ABSOLUTE HEIGHT ---
+# We calculate 'AbsHeight' (Absolute Height) for every point
+points = [{"Height": h, "AbsHeight": h + SEA_LEVEL_ZERO, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
+
+# --- 2. SPLIT DATA FOR COLORING ---
 blue_points = [p for p in points if p["Height"] <= selected_height]
 if not any(p["Height"] == selected_height for p in blue_points):
-    blue_points.append({"Height": selected_height, "Volume": cumulative_volume})
+    # Add the specifically selected point
+    blue_points.append({
+        "Height": selected_height, 
+        "AbsHeight": above_sea_level, 
+        "Volume": cumulative_volume
+    })
 blue_points = sorted(blue_points, key=lambda p: p["Height"])
 
-gray_points = [{"Height": selected_height, "Volume": cumulative_volume}]
+gray_points = [{
+    "Height": selected_height, 
+    "AbsHeight": above_sea_level, 
+    "Volume": cumulative_volume
+}]
 gray_points.extend([p for p in points if p["Height"] > selected_height])
 gray_points = sorted(gray_points, key=lambda p: p["Height"])
 
 blue_df = pd.DataFrame(blue_points)
 gray_df = pd.DataFrame(gray_points)
 
+# --- 3. CHART CONFIGURATION ---
+# We define the domain for the X axis based on min/max absolute sea levels
+x_domain = [SEA_LEVEL_ZERO, SEA_LEVEL_ZERO + 8.5]
+
 blue_line = alt.Chart(blue_df).mark_line(color="#1f77b4").encode(
-    x=alt.X("Height", title="גובה (מ')", scale=alt.Scale(domain=[0, 8.5])),
+    # Changed x to use "AbsHeight"
+    x=alt.X("AbsHeight", title="גובה מעל פני הים (מ')", scale=alt.Scale(domain=x_domain, zero=False)),
     y=alt.Y("Volume", title="נפח (מ״ק)"),
 ).properties(height=220)
+
 gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
-    x=alt.X("Height", scale=alt.Scale(domain=[0, 8.5])),
+    # Changed x to use "AbsHeight"
+    x=alt.X("AbsHeight", scale=alt.Scale(domain=x_domain, zero=False)),
     y="Volume",
 ).properties(height=220)
 
