@@ -29,7 +29,7 @@ HEIGHT_VOLUME = {
     8.5: 632162,
 }
 
-SEA_LEVEL_ZERO = 51.108
+SEA_LEVEL_ZERO = 50.608
 
 selected_height = st.number_input(
     "גובה המים (מ')",
