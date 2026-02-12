@@ -30,14 +30,32 @@ HEIGHT_VOLUME = {
 }
 
 SEA_LEVEL_ZERO = 50.0
+MAX_RELATIVE_HEIGHT = 8.5
+MAX_ABSOLUTE_HEIGHT = SEA_LEVEL_ZERO + MAX_RELATIVE_HEIGHT
 
-selected_height = st.number_input(
+# 1. CHANGED: Removed max_value constraint to allow inputs > 8.5
+user_input = st.number_input(
     "גובה המים (מ')",
     min_value=0.0,
-    max_value=8.5,
     value=6.1,
     step=0.01,
 )
+
+# 2. ADDED: Logic to determine if input is Relative, Absolute, or Invalid
+if 0.0 <= user_input <= MAX_RELATIVE_HEIGHT:
+    # Option A: Normal range (0 - 8.5)
+    selected_height = user_input
+    above_sea_level = SEA_LEVEL_ZERO + selected_height
+elif SEA_LEVEL_ZERO <= user_input <= MAX_ABSOLUTE_HEIGHT:
+    # Option B: Sea level range (50 - 58.5) -> Convert to relative
+    selected_height = user_input - SEA_LEVEL_ZERO
+    above_sea_level = user_input
+else:
+    # Option C: Invalid (Between 8.51-49.99 OR Above 58.5)
+    st.error(f"ערך לא חוקי. נא להזין גובה בטווח 0-{MAX_RELATIVE_HEIGHT} או גובה אבסולוטי בטווח {SEA_LEVEL_ZERO}-{MAX_ABSOLUTE_HEIGHT}")
+    st.stop() # Stops execution here so the graph doesn't crash
+
+# --- CALCULATIONS (Using the normalized 'selected_height') ---
 
 # Linear interpolation between the nearest 0.5m levels
 lower_step = round((selected_height // 0.5) * 0.5, 2)
@@ -50,8 +68,6 @@ if upper_step == lower_step:
 else:
     fraction = (selected_height - lower_step) / 0.5
     cumulative_volume = lower_volume + (upper_volume - lower_volume) * fraction
-
-above_sea_level = SEA_LEVEL_ZERO + selected_height
 
 st.markdown(
     f"""
@@ -72,11 +88,11 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- 1. PREPARE DATA WITH ABSOLUTE HEIGHT ---
+# --- GRAPH DATA PREPARATION ---
 # We calculate 'AbsHeight' (Absolute Height) for every point
 points = [{"Height": h, "AbsHeight": h + SEA_LEVEL_ZERO, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
 
-# --- 2. SPLIT DATA FOR COLORING ---
+# Split Data
 blue_points = [p for p in points if p["Height"] <= selected_height]
 if not any(p["Height"] == selected_height for p in blue_points):
     # Add the specifically selected point
@@ -98,18 +114,15 @@ gray_points = sorted(gray_points, key=lambda p: p["Height"])
 blue_df = pd.DataFrame(blue_points)
 gray_df = pd.DataFrame(gray_points)
 
-# --- 3. CHART CONFIGURATION ---
-# We define the domain for the X axis based on min/max absolute sea levels
+# --- CHART CONFIGURATION ---
 x_domain = [SEA_LEVEL_ZERO, SEA_LEVEL_ZERO + 8.5]
 
 blue_line = alt.Chart(blue_df).mark_line(color="#1f77b4").encode(
-    # Changed x to use "AbsHeight"
     x=alt.X("AbsHeight", title="גובה מעל פני הים (מ')", scale=alt.Scale(domain=x_domain, zero=False)),
     y=alt.Y("Volume", title="נפח (מ״ק)"),
 ).properties(height=220)
 
 gray_line = alt.Chart(gray_df).mark_line(color="#9aa0a6").encode(
-    # Changed x to use "AbsHeight"
     x=alt.X("AbsHeight", scale=alt.Scale(domain=x_domain, zero=False)),
     y="Volume",
 ).properties(height=220)
