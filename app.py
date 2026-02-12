@@ -7,33 +7,35 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Fixed reference data (Height -> Cumulative Volume)
+# --- CHANGED: Dictionary keys now represent Absolute Height (50.0 - 58.5) ---
+# Original 0.0 is now 50.0
 HEIGHT_VOLUME = { 
-    0.0: 0,
-    0.5: 4027,
-    1.0: 11655,
-    1.5: 27344,
-    2.0: 53448,
-    2.5: 88216,
-    3.0: 126617,
-    3.5: 166744,
-    4.0: 208327,
-    4.5: 251136,
-    5.0: 295066,
-    5.5: 340074,
-    6.0: 386135,
-    6.5: 433278,
-    7.0: 481569,
-    7.5: 531074,
-    8.0: 581888,
-    8.5: 634177,
+    50.0: 0,
+    50.5: 4027,
+    51.0: 11655,
+    51.5: 27344,
+    52.0: 53448,
+    52.5: 88216,
+    53.0: 126617,
+    53.5: 166744,
+    54.0: 208327,
+    54.5: 251136,
+    55.0: 295066,
+    55.5: 340074,
+    56.0: 386135,
+    56.5: 433278,
+    57.0: 481569,
+    57.5: 531074,
+    58.0: 581888,
+    58.5: 634177,
 }
 
-SEA_LEVEL_ZERO = 50.0
-MAX_RELATIVE_HEIGHT = 8.5
-MAX_ABSOLUTE_HEIGHT = SEA_LEVEL_ZERO + MAX_RELATIVE_HEIGHT
+# Constants
+MIN_ABS_HEIGHT = 50.0
+MAX_ABS_HEIGHT = 58.5
+RELATIVE_OFFSET = 50.608  # The offset added when input is < 10
 
-# 1. CHANGED: Removed max_value constraint to allow inputs > 8.5
+# Input
 user_input = st.number_input(
     "גובה המים (מ')",
     min_value=0.0,
@@ -41,34 +43,46 @@ user_input = st.number_input(
     step=0.01,
 )
 
-# 2. ADDED: Logic to determine if input is Relative, Absolute, or Invalid
-if 0.0 <= user_input <= MAX_RELATIVE_HEIGHT:
-    # Option A: Normal range (0 - 8.5)
-    selected_height = user_input
-    above_sea_level = SEA_LEVEL_ZERO + selected_height
-elif SEA_LEVEL_ZERO <= user_input <= MAX_ABSOLUTE_HEIGHT:
-    # Option B: Sea level range (50 - 58.5) -> Convert to relative
-    selected_height = user_input - SEA_LEVEL_ZERO
-    above_sea_level = user_input
+# --- LOGIC: Determine Absolute Height ---
+if user_input < 10:
+    # Relative input: Add 50.608
+    final_height = user_input + RELATIVE_OFFSET
+    input_type = "relative"
+elif user_input > 50:
+    # Absolute input: Use as is
+    final_height = user_input
+    input_type = "absolute"
 else:
-    # Option C: Invalid (Between 8.51-49.99 OR Above 58.5)
-    st.error(f"ערך לא חוקי. נא להזין גובה בטווח 0-{MAX_RELATIVE_HEIGHT} או גובה אבסולוטי בטווח {SEA_LEVEL_ZERO}-{MAX_ABSOLUTE_HEIGHT}")
-    st.stop() # Stops execution here so the graph doesn't crash
+    # Input is between 10 and 50 (ambiguous/invalid based on rules)
+    st.error("ערך לא חוקי. נא להזין גובה נמוך מ-10 (יחסי) או מעל 50 (אבסולוטי).")
+    st.stop()
 
-# --- CALCULATIONS (Using the normalized 'selected_height') ---
+# --- VALIDATION: Check if calculated height is within reservoir limits ---
+if final_height < MIN_ABS_HEIGHT or final_height > MAX_ABS_HEIGHT:
+    st.error(f"חריגה מגבולות המאגר. הגובה המחושב ({final_height:.3f} מ') חייב להיות בטווח {MIN_ABS_HEIGHT}-{MAX_ABS_HEIGHT}")
+    st.stop()
 
-# Linear interpolation between the nearest 0.5m levels
-lower_step = round((selected_height // 0.5) * 0.5, 2)
-upper_step = round(min(lower_step + 0.5, 8.5), 2)
-lower_volume = HEIGHT_VOLUME[lower_step]
-upper_volume = HEIGHT_VOLUME[upper_step]
+# --- CALCULATION: Interpolate Volume based on final_height ---
+# We need to find the nearest 0.5 steps in the absolute range (e.g. 50.0, 50.5, 51.0...)
+lower_step = round((final_height // 0.5) * 0.5, 2)
+upper_step = round(lower_step + 0.5, 2)
+
+# Handle edge case where upper_step might exceed max dict key due to float math
+if upper_step > MAX_ABS_HEIGHT:
+    upper_step = MAX_ABS_HEIGHT
+    lower_step = MAX_ABS_HEIGHT - 0.5
+
+lower_volume = HEIGHT_VOLUME.get(lower_step, 0)
+upper_volume = HEIGHT_VOLUME.get(upper_step, HEIGHT_VOLUME[MAX_ABS_HEIGHT])
 
 if upper_step == lower_step:
     cumulative_volume = lower_volume
 else:
-    fraction = (selected_height - lower_step) / 0.5
+    # Interpolation
+    fraction = (final_height - lower_step) / 0.5
     cumulative_volume = lower_volume + (upper_volume - lower_volume) * fraction
 
+# --- DISPLAY METRICS ---
 st.markdown(
     f"""
     <div style="display:flex; gap:12px; align-items:flex-start; justify-content:space-between; direction:rtl;">
@@ -76,7 +90,7 @@ st.markdown(
         <strong>נפח מצטבר</strong><br><span style="font-size:1.05rem;">{cumulative_volume:,.0f}</span> מ״ק
       </div>
       <div style="font-size:0.8rem; white-space:nowrap; text-align:right;">
-        <strong>גובה מעל פני הים</strong><br>{above_sea_level:.3f} מ׳
+        <strong>גובה מעל פני הים</strong><br>{final_height:.3f} מ׳
       </div>
     </div>
     """,
@@ -88,34 +102,34 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- GRAPH DATA PREPARATION ---
-# We calculate 'AbsHeight' (Absolute Height) for every point
-points = [{"Height": h, "AbsHeight": h + SEA_LEVEL_ZERO, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
+# --- GRAPH ---
+# Create dataframe directly from the absolute HEIGHT_VOLUME map
+points = [{"AbsHeight": h, "Volume": v} for h, v in sorted(HEIGHT_VOLUME.items())]
 
-# Split Data
-blue_points = [p for p in points if p["Height"] <= selected_height]
-if not any(p["Height"] == selected_height for p in blue_points):
-    # Add the specifically selected point
+# Split into Blue (filled) and Gray (empty)
+blue_points = [p for p in points if p["AbsHeight"] <= final_height]
+
+# Ensure the exact current point is included in the blue line
+if not any(p["AbsHeight"] == final_height for p in blue_points):
     blue_points.append({
-        "Height": selected_height, 
-        "AbsHeight": above_sea_level, 
+        "AbsHeight": final_height,
         "Volume": cumulative_volume
     })
-blue_points = sorted(blue_points, key=lambda p: p["Height"])
+blue_points = sorted(blue_points, key=lambda p: p["AbsHeight"])
 
+# The gray line starts from the current point to the end
 gray_points = [{
-    "Height": selected_height, 
-    "AbsHeight": above_sea_level, 
+    "AbsHeight": final_height,
     "Volume": cumulative_volume
 }]
-gray_points.extend([p for p in points if p["Height"] > selected_height])
-gray_points = sorted(gray_points, key=lambda p: p["Height"])
+gray_points.extend([p for p in points if p["AbsHeight"] > final_height])
+gray_points = sorted(gray_points, key=lambda p: p["AbsHeight"])
 
 blue_df = pd.DataFrame(blue_points)
 gray_df = pd.DataFrame(gray_points)
 
-# --- CHART CONFIGURATION ---
-x_domain = [SEA_LEVEL_ZERO, SEA_LEVEL_ZERO + 8.5]
+# Chart Config
+x_domain = [MIN_ABS_HEIGHT, MAX_ABS_HEIGHT]
 
 blue_line = alt.Chart(blue_df).mark_line(color="#1f77b4").encode(
     x=alt.X("AbsHeight", title="גובה מעל פני הים (מ')", scale=alt.Scale(domain=x_domain, zero=False)),
