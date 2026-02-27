@@ -31,7 +31,7 @@ HEIGHT_VOLUME = {
 
 # Constants
 MIN_ABS_HEIGHT = 50.0
-MAX_ABS_HEIGHT = 58.5
+MAX_ABS_HEIGHT = 59.5
 RELATIVE_OFFSET = 50.608  # The offset added when input is < 10
 
 # Input
